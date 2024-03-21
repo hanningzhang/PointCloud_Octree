@@ -1,8 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <chrono>
 
-#include "Bound.h"
 #include "Octree.h"
 using namespace std;
 
@@ -10,11 +10,12 @@ using namespace std;
 namespace fs = filesystem;
 
 
+// Octree functions
 Bounds computeBoundingBoxFromCSV(const vector<string>& filenames) {
     Bounds bounds;
     bool firstPoint = true;
 
-    for (auto& filename : filenames) {
+    for (const auto& filename : filenames) {
         ifstream file(filename);
         string line;
 
@@ -50,9 +51,8 @@ Bounds computeBoundingBoxFromCSV(const vector<string>& filenames) {
     return bounds;
 }
 
-
 void buildOctreeFromCSV(const vector<string>& filenames, Octree& octree) {
-    for (auto& filename : filenames) {
+    for (const auto& filename : filenames) {
         ifstream file(filename);
         string line;
 
@@ -79,6 +79,7 @@ void buildOctreeFromCSV(const vector<string>& filenames, Octree& octree) {
         }
     }
 }
+// End of Octree functions
 
 
 int main() {
@@ -120,25 +121,96 @@ int main() {
 
     // Compute the bounding box 
     Bounds bounds = computeBoundingBoxFromCSV(filenames);
+    // bounds.min.print_point();
+    // bounds.max.print_point();
     Point origin = bounds.getCenter();       
     float initialSize = bounds.getSize();   
 
+
+    // Normal Process
+    /*
+    
     // Variable settings
-    int maxDepth = 10;
-    int maxPointsPerNode = 12000;
-    int minPointsPerNode = 8000;
-    int depthAdjustmentFactor = 10000;
+    int maxDepth = 7;
+    int maxPointsPerNode = 10000;
+    int minPointsPerNode = 10000;
+    Octree octree(bounds, maxDepth, maxPointsPerNode, minPointsPerNode);
 
-    // Build Octree
-    Octree octree(origin, initialSize, maxDepth, maxPointsPerNode, minPointsPerNode, depthAdjustmentFactor);
     buildOctreeFromCSV(filenames, octree);
-
-    octree.visualize("1");
 
     // Trim octree
     octree.trim(maxDepth/2);
 
-    octree.visualize("2");
+    octree.buildRtrees();
+
+    // octree.visualize("Octree Structure");
+
+    // Range query
+    Bounds queryRange;
+    queryRange.min = Point(bounds.getCenter().x - 15, bounds.getCenter().y - 15, bounds.getCenter().z - 15); 
+    queryRange.max = Point(bounds.getCenter().x + 15, bounds.getCenter().y + 15, bounds.getCenter().z + 15);  
+    vector<Point> queryResults;
+
+    octree.executeRangeQuery(queryRange, queryResults);
+
+    cout << "Query Result: " << endl;
+    for (const Point& point : queryResults) {
+        cout << "Point: " << point.x << " " << point.y << " " << point.z << endl;
+    }
+
+    */
+
+
+
+    // Code for testing the time for query and construrction
+
+    // Variable settings arrays
+    vector<int> multimMaxDepths = {3, 5, 7, 10};
+    vector<int> multiMaxPointsPerNodes = {10000, 11000, 12000, 13000};
+    vector<int> multiMinPointsPerNodes = {6000, 7000, 8000, 9000};
+
+    // Open CSV file for output in append mode
+    ofstream csvFile("octree_timing_results.csv", ios_base::app); 
+    csvFile << "MaxDepth,MaxPointsPerNode,MinPointsPerNode,ConstructionTime(ms),RangeQueryTime(ms)\n";
+
+    int fixed = 0;
+
+    for (int i=0; i<multimMaxDepths.size(); i++) {
+        Octree octree(bounds, multimMaxDepths[i], multiMaxPointsPerNodes[fixed], multiMinPointsPerNodes[fixed]);
+
+        // Measure construction time
+        auto start1 = chrono::high_resolution_clock::now();
+        buildOctreeFromCSV(filenames, octree);
+        octree.trim(multimMaxDepths[i]/ 2);
+        octree.buildRtrees();
+        auto stop1 = chrono::high_resolution_clock::now();
+
+        // Measure range query time
+        Bounds queryRange;
+        vector<Point> queryResults;
+        int searchSize = 50;
+        queryRange.min = Point(bounds.getCenter().x - searchSize, bounds.getCenter().y - searchSize, bounds.getCenter().z - searchSize); 
+        queryRange.max = Point(bounds.getCenter().x + searchSize, bounds.getCenter().y + searchSize, bounds.getCenter().z + searchSize);  
+
+        auto start2 = chrono::high_resolution_clock::now();
+        octree.executeRangeQuery(queryRange, queryResults);
+        auto stop2 = chrono::high_resolution_clock::now();
+
+        // Calculate durations
+        auto constructionDuration = chrono::duration_cast<chrono::milliseconds>(stop1 - start1);
+        auto queryDuration = chrono::duration_cast<chrono::milliseconds>(stop2 - start2);
+
+        // Write to CSV
+        csvFile << multimMaxDepths[i] << "," << multiMaxPointsPerNodes[fixed] << "," << multiMaxPointsPerNodes[fixed] << ","
+                << constructionDuration.count() << "," << queryDuration.count() << "\n";
+
+    }
+    
+    csvFile.close();
+
+
+
+
 
     return 0;
 }

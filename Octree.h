@@ -9,7 +9,6 @@ private:
     int maxDepth;
     int maxPointsPerNode;
     int minPointsPerNode;
-    int depthAdjustmentFactor;
 
     // Function to determine the child index for a point
     int getOctant(const Point& origin, Point& point);
@@ -25,22 +24,32 @@ private:
     // Function to visualize built node in the Octree
     void visualizeNode(OctreeNode* node, int level, ofstream& outFile);
 
+    // Function to calculate bounding box for each octants
+    Bounds calculateChildBounds(Bounds& parentBounds, int octant);
+
+    // Range Query function
+    void rangeQuery(Bounds& queryRange, vector<Point>& results, OctreeNode* node, int depth = 0);
+
+    // Function to create R-trees for each leaf node
+    void initializeRTrees(OctreeNode* node);
+
 public:
-    Octree(Point origin, float initialSize, int maxDepth, int maxPoints, int minPoints, int depthFactor) : maxDepth(maxDepth), maxPointsPerNode(maxPoints), minPointsPerNode(minPoints), depthAdjustmentFactor(depthFactor) {
-        root = new OctreeNode(origin, initialSize);
-    }
+    Octree(Bounds bound, int maxDepth, int maxPoints, int minPoints) : maxDepth(maxDepth), maxPointsPerNode(maxPoints), minPointsPerNode(minPoints) {
+        root = new OctreeNode(bound);
+    };
 
     ~Octree() {
         delete root;
-    }
+    };
 
     void insert(Point& point) {
         insert(root, point, 0);
-    }
+    };
 
+    // Function to optimize octree 
     void trim(int startDepth) {
         mergeUnderpopulatedNodes(root, 0, startDepth);
-    }
+    };
 
     // Function to visualize octree
     void visualize(string trialNum) {
@@ -52,5 +61,14 @@ public:
 
         visualizeNode(root, 0, outFile);
         outFile.close();
+    };
+
+    void executeRangeQuery(Bounds& queryRange, vector<Point>& results) {
+        rangeQuery(queryRange, results, root);
+    };
+    
+    // Search leaf nodes and build R-trees
+    void buildRtrees() {
+        initializeRTrees(root);
     }
 };
