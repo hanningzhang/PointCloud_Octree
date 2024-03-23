@@ -8,6 +8,7 @@ private:
     OctreeNode* root;
     int maxDepth;
     int maxPointsPerNode;
+    int minPointsPerNode;
 
     // Function to determine the child index for a point
     int getOctant(const Point& origin, Point& point);
@@ -30,10 +31,13 @@ private:
     void rangeQuery(Bounds& queryRange, vector<Point>& results, OctreeNode* node, int depth = 0);
 
     // Function to create R-trees for each leaf node
-    void initializeRTrees(OctreeNode* node, vector<future<void>>& futures);
+    void initializeRTrees(OctreeNode* node);
+
+    // Function to create Kd-trees for each leaf node
+    void initializeKdTrees(OctreeNode* node);
 
 public:
-    Octree(Bounds bound, int maxDepth, int maxPoints) : maxDepth(maxDepth), maxPointsPerNode(maxPoints) {
+    Octree(Bounds bound, int maxDepth, int maxPoints, int minPoints) : maxDepth(maxDepth), maxPointsPerNode(maxPoints), minPointsPerNode(minPoints) {
         root = new OctreeNode(bound);
     };
 
@@ -68,12 +72,10 @@ public:
     
     // Search leaf nodes and build R-trees
     void buildRtrees() {
-        vector<future<void>> futures;
-        initializeRTrees(root, futures);
+        initializeRTrees(root);
+    }
 
-        // Wait for all threads to complete
-        for (auto& fut : futures) {
-            fut.get();
-        }
+    void buildKdtrees() {
+        initializeKdTrees(root);
     }
 };
