@@ -61,6 +61,10 @@ void RSearch(RTreePoints* tree, std::vector<Point>& results, Bounds& queryRange)
 }
 // End of R-tree functions
 
+void KdSearch(KdTree* kdtree, std::vector<Point>& results, Bounds& queryRange){
+    kdtree->rangeQuery(results,queryRange);
+    return;
+}
 
 int Octree::getOctant(const Point& origin, Point& point) {  
     int octant = 0;
@@ -228,6 +232,11 @@ void Octree::rangeQuery(Bounds& queryRange, vector<Point>& results, OctreeNode* 
             RSearch(node->rtree, rtreeResults, queryRange);
             results.insert(results.end(), rtreeResults.begin(), rtreeResults.end());
         } 
+        if (node->kdtree){
+            vector<Point> rtreeResults;
+            KdSearch(node->kdtree, rtreeResults, queryRange);
+            results.insert(results.end(), rtreeResults.begin(), rtreeResults.end());
+        }
     } 
     else {
         for (int i = 0; i < 8; i++) {

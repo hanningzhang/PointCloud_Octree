@@ -28,6 +28,48 @@ vector<Point> KdTree::kNearestNeighbors(Point& queryPoint, int k) {
     return result;
 }
 
+// Perform Range Query
+void KdTree::rangeQuery(std::vector<Point>& results, Bounds& queryRange){
+    if (root == nullptr) {
+        return;
+    }
+
+    // Check if the current node is within the range
+    if (queryRange.contains(root->point)) {
+        results.push_back(root->point);
+    }
+
+    // Check if the left subtree is within the range
+    if (root->left != nullptr) {
+        recursiveRangeQuery(root->left, results,queryRange);
+    }
+
+    // Check if the right subtree is within the range
+    if (root->right != nullptr) {
+        recursiveRangeQuery(root->right, results,queryRange);
+    }
+}
+void KdTree::recursiveRangeQuery(Node* currentNode, std::vector<Point>& results, Bounds& queryRange){
+    if (currentNode == nullptr) {
+        return;
+    }
+
+    // Check if the current node is within the range
+    if (queryRange.contains(currentNode->point)) {
+        results.push_back(currentNode->point);
+    }
+
+    // Check if the left subtree is within the range
+    if (currentNode->left != nullptr) {
+        recursiveRangeQuery(currentNode->left, results,queryRange);
+    }
+
+    // Check if the right subtree is within the range
+    if (currentNode->right != nullptr) {
+        recursiveRangeQuery(currentNode->right, results,queryRange);
+    }
+}
+
 
 // Extend tree nodes
 KdTree::Node* KdTree::buildTreeRecursive(vector<Point> &points, int depth) {

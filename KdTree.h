@@ -4,6 +4,7 @@
 #include <queue>
 #include "Point.h"
 #include "ComparePoint.h"
+#include "Bound.h"
 using namespace std;
 
 
@@ -48,6 +49,9 @@ class KdTree {
         // Function to perform k-NN search
         vector<Point> kNearestNeighbors(Point& queryPoint, int k);
 
+        // Function to perform range query
+        void rangeQuery(std::vector<Point>& results, Bounds& queryRange);
+
     private:
         Node* root;
 
@@ -66,5 +70,5 @@ class KdTree {
         void kNearestNeighborsRecursive(Node* currentNode, Point& queryPoint, int k,
                                     priority_queue<pair<double, Point>, vector<pair<double, Point>>, ComparePoint>& nearestNeighbors, int depth);
 
-
+        void recursiveRangeQuery(Node* currentNode, std::vector<Point>& results, Bounds& queryRange);
 };
