@@ -77,7 +77,7 @@ KdTree::Node* KdTree::buildTreeRecursive(vector<Point> &points, int depth) {
         return nullptr;
     }
 
-    int axis = depth % 6; 
+    int axis = depth % 3; 
 
     // Sort points based on the current axis
     sort(points.begin(), points.end(), [axis](const Point& a, const Point& b) {
@@ -85,9 +85,9 @@ KdTree::Node* KdTree::buildTreeRecursive(vector<Point> &points, int depth) {
             case 0: return a.x < b.x;
             case 1: return a.y < b.y;
             case 2: return a.z < b.z;
-            case 3: return a.r < b.r;
-            case 4: return a.g < b.g;
-            case 5: return a.b < b.b;
+            // case 3: return a.r < b.r;
+            // case 4: return a.g < b.g;
+            // case 5: return a.b < b.b;
             default: return false; // Should never be reached
         }
     });
@@ -114,15 +114,12 @@ void KdTree::kNearestNeighborsRecursive(Node* currentNode, Point& queryPoint, in
         return;
     }
 
-    int axis = depth % 6; // Now includes RGB in axis selection
+    int axis = depth % 3; // Now includes RGB in axis selection
 
     // Calculate squared distance (euclidean)
     double squaredDistance = pow(currentNode->point.x - queryPoint.x, 2) +
                              pow(currentNode->point.y - queryPoint.y, 2) +
-                             pow(currentNode->point.z - queryPoint.z, 2) +
-                             pow(static_cast<double>(currentNode->point.r) - queryPoint.r, 2) +
-                             pow(static_cast<double>(currentNode->point.g) - queryPoint.g, 2) +
-                             pow(static_cast<double>(currentNode->point.b) - queryPoint.b, 2);
+                             pow(currentNode->point.z - queryPoint.z, 2);
 
     nearestNeighbors.push({squaredDistance, currentNode->point});
 
@@ -147,9 +144,9 @@ void KdTree::kNearestNeighborsRecursive(Node* currentNode, Point& queryPoint, in
         case 0: goLeft = queryPoint.x < currentNode->point.x; break;
         case 1: goLeft = queryPoint.y < currentNode->point.y; break;
         case 2: goLeft = queryPoint.z < currentNode->point.z; break;
-        case 3: goLeft = queryPoint.r < currentNode->point.r; break;
-        case 4: goLeft = queryPoint.g < currentNode->point.g; break;
-        case 5: goLeft = queryPoint.b < currentNode->point.b; break;
+        // case 3: goLeft = queryPoint.r < currentNode->point.r; break;
+        // case 4: goLeft = queryPoint.g < currentNode->point.g; break;
+        // case 5: goLeft = queryPoint.b < currentNode->point.b; break;
     }
     nextNode = goLeft ? currentNode->left : currentNode->right;
     otherNode = goLeft ? currentNode->right : currentNode->left;
