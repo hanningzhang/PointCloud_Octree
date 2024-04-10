@@ -227,11 +227,11 @@ void Octree::rangeQuery(Bounds& queryRange, vector<Point>& results, OctreeNode* 
 
     if (node->isLeaf()) {
         // If it's a leaf node, query the R-tree
-        if (node->rtree) {
-            vector<Point> rtreeResults;
-            RSearch(node->rtree, rtreeResults, queryRange);
-            results.insert(results.end(), rtreeResults.begin(), rtreeResults.end());
-        } 
+        // if (node->rtree) {
+        //     vector<Point> rtreeResults;
+        //     RSearch(node->rtree, rtreeResults, queryRange);
+        //     results.insert(results.end(), rtreeResults.begin(), rtreeResults.end());
+        // } 
         if (node->kdtree){
             vector<Point> rtreeResults;
             KdSearch(node->kdtree, rtreeResults, queryRange);
@@ -296,6 +296,7 @@ void Octree::initializeRTrees(OctreeNode* node) {
 void Octree::initializeKdTrees(OctreeNode* node){
     if (node->isLeaf()){
         node->kdtree = new KdTree();
+        KdInsert(node->kdtree, node->points);
     }
     else {
         for (int i = 0; i < 8; i++){
